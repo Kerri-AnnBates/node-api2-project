@@ -35,7 +35,7 @@ router.get('/:id', (req, res) => {
 // GET post comments
 router.get('/:id/comments', (req, res) => {
     const id = req.params.id;
-    
+
     db.findPostComments(id)
         .then(comments => {
             console.log(comments);
@@ -115,4 +115,31 @@ router.post('/:id/comments', (req, res) => {
         res.status(400).json({ errorMessage: "Please provide text for the comment." });
     }
 })
+
+// PUT resquest to update post
+router.put('/:id', (req, res) => {
+    const changes = req.body;
+    const id = req.params.id;
+
+    db.findById(id)
+        .then(post => {
+            if (post.length === 0) {
+                res.status(404).json({ message: "The post with the specified ID does not exist." });
+            }
+        })
+
+    if(changes.title || changes.contents){
+        db.update(id, changes)
+            .then(post => {
+                res.status(200).json(post);
+            })
+            .catch(error => {
+                res.end();
+                res.status(500).json({ error: "The post information could not be modified." });
+            })
+    } else {
+        res.status(400).json({ errorMessage: "Please provide title and contents for the post." });
+    }
+})
+
 module.exports = router;
