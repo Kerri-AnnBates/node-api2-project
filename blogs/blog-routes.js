@@ -54,11 +54,17 @@ router.get('/:id/comments', (req, res) => {
 // DELETE post
 router.delete('/:id', (req, res) => {
     const id = req.params.id;
+    let deletedPost = {};
+
+    db.findById(id)
+        .then(post => {
+            deletedPost = post;
+        });
+
     db.remove(id)
         .then(post => {
-            // console.log("post", post);
             if (post) {
-                res.status(200).json(post);
+                res.status(200).json({message: "The post has successfully been deleted.", post: deletedPost});
             } else {
                 res.status(404).json({ message: "The post with the specified ID does not exist." });
             }
@@ -66,7 +72,7 @@ router.delete('/:id', (req, res) => {
         .catch(error => {
             res.end();
             res.status(500).json({ error: "The post could not be removed" });
-        })
+        });
 })
 
 // POST a post.
@@ -131,7 +137,10 @@ router.put('/:id', (req, res) => {
     if(changes.title || changes.contents){
         db.update(id, changes)
             .then(post => {
-                res.status(200).json(post);
+                db.findById(id)
+                .then(updatedPost => {
+                    res.status(200).json(updatedPost);
+                })
             })
             .catch(error => {
                 res.end();
