@@ -35,8 +35,8 @@ router.get('/:id', (req, res) => {
 // GET post comments
 router.get('/:id/comments', (req, res) => {
     const id = req.params.id;
-
-    db.findCommentById(id)
+    
+    db.findPostComments(id)
         .then(comments => {
             console.log(comments);
             if (comments.length > 0) {
@@ -84,6 +84,35 @@ router.post('/', (req, res) => {
             })
     } else {
         res.status(400).json({ errorMessage: "Please provide title and contents for the post." });
+    }
+})
+
+// POST comments on a post
+router.post('/:id/comments', (req, res) => {
+    const newComment = req.body;
+    const id = req.params.id;
+
+    db.findById(id)
+        .then(post => {
+            if (post.length === 0) {
+                res.status(404).json({ message: "The post with the specified ID does not exist." });
+            }
+        })
+        .catch(error => {
+            res.status(500).json({ error: "There was an error while saving the comment to the database" });
+        })
+
+    if (newComment.text) {
+        db.insertComment(newComment)
+            .then(comment => {
+                res.status(201).json(comment);
+            })
+            .catch(error => {
+                res.status(500).json({ error: "There was an error while saving the comment to the database" });
+                res.end();
+            })
+    } else {
+        res.status(400).json({ errorMessage: "Please provide text for the comment." });
     }
 })
 module.exports = router;
